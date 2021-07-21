@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:instagram/blocs/auth/auth_bloc.dart';
 import 'package:instagram/config/custom_router.dart';
 import 'package:instagram/enums/enums.dart';
+import 'package:instagram/repositories/post/post_repository.dart';
+import 'package:instagram/repositories/storage/storage_repository.dart';
+import 'package:instagram/repositories/user/user_repository.dart';
+import 'package:instagram/screens/create_posts/create_post_screen.dart';
+import 'package:instagram/screens/create_posts/cubit/create_post_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:instagram/screens/profile/bloc/profile_bloc.dart';
+import 'package:instagram/screens/profile/profile_screen.dart';
 
 class TavNavigator extends StatelessWidget {
   const TavNavigator({Key? key, required this.navigatorKey, required this.item})
@@ -53,10 +62,13 @@ class TavNavigator extends StatelessWidget {
         );
 
       case BottomNavItem.create:
-        return const Scaffold(
-          body: Center(
-            child: Text('Create'),
+        return BlocProvider<CreatePostCubit>(
+          create: (context) => CreatePostCubit(
+            postRepository: context.read<PostRepository>(),
+            storageRepository: context.read<StorageRepository>(),
+            authBloc: context.read<AuthBloc>(),
           ),
+          child: CreatePostScreen(),
         );
       case BottomNavItem.notifications:
         return const Scaffold(
@@ -65,10 +77,14 @@ class TavNavigator extends StatelessWidget {
           ),
         );
       case BottomNavItem.profile:
-        return const Scaffold(
-          body: Center(
-            child: Text('Profile'),
-          ),
+        return BlocProvider(
+          create: (context) => ProfileBloc(
+            userRepository: context.read<UserRepository>(),
+            authBloc: context.read<AuthBloc>(),
+            postRepository: context.read<PostRepository>(),
+          )..add(ProfileLoadUser(
+              userId: context.read<AuthBloc>().state.user?.uid)),
+          child: ProfileScren(),
         );
 
       default:
