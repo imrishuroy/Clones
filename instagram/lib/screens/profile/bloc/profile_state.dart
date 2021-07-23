@@ -4,7 +4,7 @@ enum ProfileStatus { initial, loading, loaded, error }
 
 class ProfileState extends Equatable {
   final AppUser? user;
-  final List<Post>? posts;
+  final List<Post?>? posts;
   final bool? isCurrentUser;
   final bool? isGridView;
   final bool? isFollowing;
@@ -46,7 +46,7 @@ class ProfileState extends Equatable {
 
   ProfileState copyWith({
     AppUser? user,
-    List<Post>? posts,
+    List<Post?>? posts,
     bool? isCurrentUser,
     bool? isGridView,
     bool? isFollowing,

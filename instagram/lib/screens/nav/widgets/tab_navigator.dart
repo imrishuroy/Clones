@@ -10,6 +10,8 @@ import 'package:instagram/screens/create_posts/cubit/create_post_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:instagram/screens/profile/bloc/profile_bloc.dart';
 import 'package:instagram/screens/profile/profile_screen.dart';
+import 'package:instagram/screens/search/cubit/search_cubit.dart';
+import 'package:instagram/screens/search/search_screen.dart';
 
 class TavNavigator extends StatelessWidget {
   const TavNavigator({Key? key, required this.navigatorKey, required this.item})
@@ -55,10 +57,10 @@ class TavNavigator extends StatelessWidget {
           ),
         );
       case BottomNavItem.search:
-        return const Scaffold(
-          body: Center(
-            child: Text('Search'),
-          ),
+        return BlocProvider<SearchCubit>(
+          create: (context) =>
+              SearchCubit(userRepository: context.read<UserRepository>()),
+          child: SearchScreen(),
         );
 
       case BottomNavItem.create:
@@ -84,7 +86,7 @@ class TavNavigator extends StatelessWidget {
             postRepository: context.read<PostRepository>(),
           )..add(ProfileLoadUser(
               userId: context.read<AuthBloc>().state.user?.uid)),
-          child: ProfileScren(),
+          child: ProfileScreen(),
         );
 
       default:

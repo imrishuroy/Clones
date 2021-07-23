@@ -30,7 +30,8 @@ class PostRepository extends BasePostRepository {
   @override
   Stream<List<Future<Post?>>> getUserPosts({@required String? userId}) {
     final _authorRef =
-        FirebaseFirestore.instance.collection(Paths.posts).doc(userId);
+        FirebaseFirestore.instance.collection(Paths.users).doc(userId);
+    print('Author ref $_authorRef');
     return _firebaseFirestore
         .collection(Paths.posts)
         // to query two fields we have to add composit indexes on firebase console

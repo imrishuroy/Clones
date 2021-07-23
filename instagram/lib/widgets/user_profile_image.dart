@@ -22,7 +22,7 @@ class UserProfileImage extends StatelessWidget {
         backgroundColor: Colors.grey[200],
         radius: radius,
         backgroundImage: FileImage(profileImage!),
-        child: _noProfileIcon(),
+        child: profileImage == null ? _noProfileIcon() : null,
       );
     } else if (profileImageUrl != null) {
       return CircleAvatar(
@@ -31,7 +31,7 @@ class UserProfileImage extends StatelessWidget {
         backgroundImage: CachedNetworkImageProvider(
           profileImageUrl!,
         ),
-        child: _noProfileIcon(),
+        child: profileImageUrl == null ? _noProfileIcon() : null,
       );
     } else {
       return CircleAvatar(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:instagram/screens/edit_profile/edit_profile_screen.dart';
 import 'package:instagram/screens/profile/bloc/profile_bloc.dart';
 
 class ProfileButton extends StatelessWidget {
@@ -20,11 +21,9 @@ class ProfileButton extends StatelessWidget {
               primary: Theme.of(context).primaryColor,
               textStyle: TextStyle(fontSize: 16.0, color: Colors.white),
             ),
-            onPressed: () {},
-            //=> Navigator.of(context).pushNamed(
-            // EditProfileScreen.routeName,
-            // arguments: EditProfileScreenArgs(context: context),
-            // ),
+            onPressed: () => Navigator.of(context).pushNamed(
+                EditProfileScreen.routeName,
+                arguments: EditProfileScreenArgs(context: context)),
             child: const Text(
               'Edit Profile',
             ),

@@ -1,14 +1,57 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:instagram/blocs/auth/auth_bloc.dart';
+import 'package:instagram/repositories/post/post_repository.dart';
+import 'package:instagram/repositories/user/user_repository.dart';
 import 'package:instagram/screens/profile/bloc/profile_bloc.dart';
 import 'package:instagram/screens/profile/widget/profile_info.dart';
 import 'package:instagram/screens/profile/widget/profile_stats.dart';
 import 'package:instagram/widgets/error_dialog.dart';
+import 'package:instagram/widgets/post_view.dart';
 import 'package:instagram/widgets/user_profile_image.dart';
 
-class ProfileScren extends StatelessWidget {
+class ProfileScreenArgs {
+  final String? userId;
+
+  ProfileScreenArgs({required this.userId});
+}
+
+class ProfileScreen extends StatefulWidget {
   static const String routeName = 'profile';
+
+  static Route route({required ProfileScreenArgs args}) {
+    return MaterialPageRoute(
+      settings: RouteSettings(arguments: args, name: routeName),
+      builder: (context) => BlocProvider<ProfileBloc>(
+        create: (context) => ProfileBloc(
+          userRepository: context.read<UserRepository>(),
+          postRepository: context.read<PostRepository>(),
+          authBloc: context.read<AuthBloc>(),
+        )..add(ProfileLoadUser(userId: args.userId)),
+        child: ProfileScreen(),
+      ),
+    );
+  }
+
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,31 +60,44 @@ class ProfileScren extends StatelessWidget {
         if (state.status == ProfileStatus.error) {
           showDialog(
             context: context,
-            builder: (context) => ErrorDialog(
-              content: state.failure.message,
-            ),
+            builder: (context) => ErrorDialog(content: state.failure.message),
           );
         }
       },
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            centerTitle: true,
-            title: Text('${state.user?.username}'),
+            title: Text(state.user?.username ?? ''),
             actions: [
-              if (state.isCurrentUser ?? false)
+              if (state.isCurrentUser!)
                 IconButton(
+                  icon: const Icon(Icons.exit_to_app),
                   onPressed: () {
                     context.read<AuthBloc>().add(AuthLogoutRequested());
+                    // context.read<LikedPostsCubit>().clearAllLikedPosts();
                   },
-                  icon: Icon(
-                    Icons.exit_to_app,
-                    color: Colors.black,
-                  ),
                 ),
             ],
           ),
-          body: CustomScrollView(
+          body: _buildBody(state),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(ProfileState state) {
+    switch (state.status) {
+      case ProfileStatus.loading:
+        return Center(child: CircularProgressIndicator());
+      default:
+        return RefreshIndicator(
+          onRefresh: () async {
+            context
+                .read<ProfileBloc>()
+                .add(ProfileLoadUser(userId: state.user?.id));
+            //return true;
+          },
+          child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
                 child: Column(
@@ -57,7 +113,7 @@ class ProfileScren extends StatelessWidget {
                           ProfileStats(
                             isCurrentUser: state.isCurrentUser ?? false,
                             isFollowing: state.isFollowing ?? false,
-                            posts: state.posts?.length ?? 0,
+                            posts: state.posts?.length,
                             followers: state.user?.followers,
                             following: state.user?.following ?? 0,
                           ),
@@ -77,10 +133,75 @@ class ProfileScren extends StatelessWidget {
                   ],
                 ),
               ),
+              SliverToBoxAdapter(
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Theme.of(context).primaryColor,
+                  unselectedLabelColor: Colors.grey,
+                  tabs: [
+                    Tab(icon: Icon(Icons.grid_on, size: 28.0)),
+                    Tab(icon: Icon(Icons.list, size: 28.0)),
+                  ],
+                  indicatorWeight: 3.0,
+                  onTap: (i) => context
+                      .read<ProfileBloc>()
+                      .add(ProfileToggleGridView(isGridView: i == 0)),
+                ),
+              ),
+              state.isGridView!
+                  ? SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 2.0,
+                        crossAxisSpacing: 2.0,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final post = state.posts?[index];
+                          return GestureDetector(
+                            //onTap: () => Navigator.of(context).pushNamed(
+                            // CommentsScreen.routeName,
+                            // arguments: CommentsScreenArgs(post: post),
+                            // ),
+                            child: CachedNetworkImage(
+                              imageUrl: post!.imageUrl!,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
+                        childCount: state.posts?.length,
+                      ),
+                    )
+                  : SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final post = state.posts?[index];
+                          // final likedPostsState =
+                          //     context.watch<LikedPostsCubit>().state;
+                          // final isLiked =
+                          //     likedPostsState.likedPostIds.contains(post.id);
+                          return PostView(
+                            post: post,
+                            isLiked: false,
+                            onLike: () {
+                              // if (isLiked) {
+                              //   context
+                              //       .read<LikedPostsCubit>()
+                              //       .unlikePost(post: post);
+                              // } else {
+                              //   context
+                              //       .read<LikedPostsCubit>()
+                              //       .likePost(post: post);
+                              // }
+                            },
+                          );
+                        },
+                        childCount: state.posts?.length,
+                      ),
+                    ),
             ],
           ),
         );
-      },
-    );
+    }
   }
 }
