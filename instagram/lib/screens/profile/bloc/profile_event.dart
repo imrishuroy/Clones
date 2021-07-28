@@ -8,12 +8,12 @@ abstract class ProfileEvent extends Equatable {
 }
 
 class ProfileLoadUser extends ProfileEvent {
-  final String? userId;
+  final String userId;
 
   const ProfileLoadUser({required this.userId});
 
   @override
-  List<Object> get props => [userId!];
+  List<Object> get props => [userId];
 }
 
 class ProfileToggleGridView extends ProfileEvent {

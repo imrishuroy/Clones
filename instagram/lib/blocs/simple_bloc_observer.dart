@@ -1,21 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SimpleBlocOberser extends BlocObserver {
+class SimpleBlocObserver extends BlocObserver {
   @override
-  void onEvent(Bloc<dynamic, dynamic> bloc, Object? event) {
+  void onEvent(Bloc bloc, Object? event) {
     print(event);
     super.onEvent(bloc, event);
   }
 
   @override
-  void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {
-    print(change);
-    super.onChange(bloc, change);
+  void onTransition(Bloc bloc, Transition transition) {
+    print(transition);
+    super.onTransition(bloc, transition);
   }
 
   @override
-  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
     print(error);
+
     super.onError(bloc, error, stackTrace);
   }
 }

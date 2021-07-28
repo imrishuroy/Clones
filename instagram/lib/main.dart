@@ -3,20 +3,18 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:instagram/blocs/auth/auth_bloc.dart';
 import 'package:instagram/blocs/simple_bloc_observer.dart';
 import 'package:instagram/config/custom_router.dart';
-import 'package:instagram/repositories/auth/auth_repository.dart';
-import 'package:instagram/repositories/post/post_repository.dart';
-import 'package:instagram/repositories/storage/storage_repository.dart';
-import 'package:instagram/repositories/user/user_repository.dart';
-import 'package:instagram/screens/screens.dart';
+import 'package:instagram/cubits/cubits.dart';
+import 'package:instagram/screens/splash/splash_screen.dart';
+import 'blocs/blocs.dart';
+import 'repositories/repositories.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   EquatableConfig.stringify = kDebugMode;
-  Bloc.observer = SimpleBlocOberser();
+  Bloc.observer = SimpleBlocObserver();
   runApp(MyApp());
 }
 
@@ -24,41 +22,55 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
-      providers: <RepositoryProvider<dynamic>>[
-        RepositoryProvider<AuthRepository>(create: (_) => AuthRepository()),
-        RepositoryProvider<PostRepository>(create: (_) => PostRepository()),
-        RepositoryProvider<UserRepository>(create: (_) => UserRepository()),
+      providers: [
+        RepositoryProvider<AuthRepository>(
+          create: (_) => AuthRepository(),
+        ),
+        RepositoryProvider<UserRepository>(
+          create: (_) => UserRepository(),
+        ),
         RepositoryProvider<StorageRepository>(
           create: (_) => StorageRepository(),
-        )
+        ),
+        RepositoryProvider<PostRepository>(
+          create: (_) => PostRepository(),
+        ),
+        RepositoryProvider<NotificationRepository>(
+          create: (_) => NotificationRepository(),
+        ),
       ],
       child: MultiBlocProvider(
-        providers: <BlocProvider<dynamic>>[
+        providers: [
           BlocProvider<AuthBloc>(
-            create: (BuildContext context) => AuthBloc(
-              authRepository: context.read<AuthRepository>(),
+            create: (context) =>
+                AuthBloc(authRepository: context.read<AuthRepository>()),
+          ),
+          BlocProvider<LikedPostsCubit>(
+            create: (context) => LikedPostsCubit(
+              postRepository: context.read<PostRepository>(),
+              authBloc: context.read<AuthBloc>(),
             ),
-          )
+          ),
         ],
         child: MaterialApp(
+          title: 'Flutter Instagram',
           debugShowCheckedModeBanner: false,
-          title: 'Instagram',
           theme: ThemeData(
+            primarySwatch: Colors.blue,
             scaffoldBackgroundColor: Colors.grey[50],
-            appBarTheme: const AppBarTheme(
+            appBarTheme: AppBarTheme(
               brightness: Brightness.light,
               color: Colors.white,
-              iconTheme: IconThemeData(color: Colors.black),
-              textTheme: TextTheme(
+              iconTheme: const IconThemeData(color: Colors.black),
+              textTheme: const TextTheme(
                 headline6: TextStyle(
                   color: Colors.black,
-                  fontSize: 20,
+                  fontSize: 20.0,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            primarySwatch: Colors.blue,
-            iconTheme: const IconThemeData(color: Colors.black),
+            visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
           onGenerateRoute: CustomRouter.onGenerateRoute,
           initialRoute: SplashScreen.routeName,

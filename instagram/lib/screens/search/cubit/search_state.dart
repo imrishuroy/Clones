@@ -3,7 +3,7 @@ part of 'search_cubit.dart';
 enum SearchStatus { initial, loading, loaded, error }
 
 class SearchState extends Equatable {
-  final List<AppUser?> users;
+  final List<User?>? users;
   final SearchStatus status;
   final Failure failure;
 
@@ -22,10 +22,10 @@ class SearchState extends Equatable {
   }
 
   @override
-  List<Object> get props => [users, status, failure];
+  List<Object?> get props => [users, status, failure];
 
   SearchState copyWith({
-    List<AppUser?>? users,
+    List<User?>? users,
     SearchStatus? status,
     Failure? failure,
   }) {

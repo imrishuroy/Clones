@@ -2,10 +2,8 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-
 import 'package:instagram/models/models.dart';
-import 'package:instagram/repositories/storage/storage_repository.dart';
-import 'package:instagram/repositories/user/user_repository.dart';
+import 'package:instagram/repositories/repositories.dart';
 import 'package:instagram/screens/profile/bloc/profile_bloc.dart';
 
 part 'edit_profile_state.dart';
@@ -18,13 +16,13 @@ class EditProfileCubit extends Cubit<EditProfileState> {
   EditProfileCubit({
     required UserRepository userRepository,
     required StorageRepository storageRepository,
-    required ProfileBloc profileBloc,
+    required ProfileBloc? profileBloc,
   })  : _userRepository = userRepository,
         _storageRepository = storageRepository,
-        _profileBloc = profileBloc,
+        _profileBloc = profileBloc!,
         super(EditProfileState.initial()) {
     final user = _profileBloc.state.user;
-    emit(state.copyWith(username: user?.username, bio: user?.bio));
+    emit(state.copyWith(username: user!.username!, bio: user.bio!));
   }
 
   void profileImageChanged(File image) {
@@ -50,15 +48,15 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     try {
       final user = _profileBloc.state.user;
 
-      var profileImageUrl = user?.profileImageUrl;
+      var profileImageUrl = user!.profileImageUrl!;
       if (state.profileImage != null) {
         profileImageUrl = await _storageRepository.uploadProfileImage(
-          url: profileImageUrl ?? '',
+          url: profileImageUrl,
           image: state.profileImage!,
         );
       }
 
-      final updatedUser = user?.copyWith(
+      final updatedUser = user.copyWith(
         username: state.username,
         bio: state.bio,
         profileImageUrl: profileImageUrl,
@@ -66,7 +64,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
 
       await _userRepository.updateUser(user: updatedUser);
 
-      _profileBloc.add(ProfileLoadUser(userId: user?.id));
+      _profileBloc.add(ProfileLoadUser(userId: user.id!));
 
       emit(state.copyWith(status: EditProfileStatus.success));
     } catch (err) {

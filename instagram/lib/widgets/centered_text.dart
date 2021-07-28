@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class CenteredText extends StatelessWidget {
-  final String? text;
+  final String text;
 
   const CenteredText({
     Key? key,
-    @required this.text,
+    required this.text,
   }) : super(key: key);
 
   @override
@@ -14,7 +14,7 @@ class CenteredText extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Text(
-          text ?? '',
+          text,
           style: const TextStyle(fontSize: 16.0),
           textAlign: TextAlign.center,
         ),

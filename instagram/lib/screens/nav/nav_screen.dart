@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:instagram/enums/enums.dart';
-import 'package:instagram/screens/nav/cubit/bottom_nav_cubit.dart';
-import 'package:instagram/screens/nav/widgets/bottom_nav_bar.dart';
-import 'package:instagram/screens/nav/widgets/tab_navigator.dart';
+import 'package:instagram/screens/nav/cubit/bottom_nav_bar_cubit.dart';
+import 'package:instagram/screens/nav/widgets/widgets.dart';
 
 class NavScreen extends StatelessWidget {
-  NavScreen({Key? key}) : super(key: key);
-
   static const String routeName = '/nav';
 
-  static Route<void> route() {
-    return PageRouteBuilder<void>(
+  static Route route() {
+    return PageRouteBuilder(
       settings: const RouteSettings(name: routeName),
-      transitionDuration: const Duration(),
-      pageBuilder: (_, __, ___) => BlocProvider<BottomNavCubit>(
-        create: (_) => BottomNavCubit(),
+      transitionDuration: const Duration(seconds: 0),
+      pageBuilder: (_, __, ___) => BlocProvider<BottomNavBarCubit>(
+        create: (_) => BottomNavBarCubit(),
         child: NavScreen(),
       ),
     );
   }
 
-  final Map<BottomNavItem, GlobalKey<NavigatorState>> navigatorKeys =
-      <BottomNavItem, GlobalKey<NavigatorState>>{
+  final Map<BottomNavItem, GlobalKey<NavigatorState>> navigatorKeys = {
     BottomNavItem.feed: GlobalKey<NavigatorState>(),
     BottomNavItem.search: GlobalKey<NavigatorState>(),
     BottomNavItem.create: GlobalKey<NavigatorState>(),
@@ -31,7 +26,7 @@ class NavScreen extends StatelessWidget {
     BottomNavItem.profile: GlobalKey<NavigatorState>(),
   };
 
-  final Map<BottomNavItem, IconData> items = <BottomNavItem, IconData>{
+  final Map<BottomNavItem, IconData> items = const {
     BottomNavItem.feed: Icons.home,
     BottomNavItem.search: Icons.search,
     BottomNavItem.create: Icons.add,
@@ -41,33 +36,29 @@ class NavScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //RepositoryProvider.of<AuthRepository>(context).logout();
     return WillPopScope(
       onWillPop: () async => false,
-      child: BlocBuilder<BottomNavCubit, BottomNavState>(
-        builder: (BuildContext context, BottomNavState state) {
+      child: BlocBuilder<BottomNavBarCubit, BottomNavBarState>(
+        builder: (context, state) {
           return Scaffold(
             body: Stack(
               children: items
-                  .map(
-                    (BottomNavItem item, _) => MapEntry<BottomNavItem, Widget>(
-                      item,
-                      _buildOffStageNavigator(
+                  .map((item, _) => MapEntry(
                         item,
-                        item == state.selectedItem,
-                      ),
-                    ),
-                  )
+                        _buildOffstageNavigator(
+                          item,
+                          item == state.selectedItem,
+                        ),
+                      ))
                   .values
                   .toList(),
             ),
             bottomNavigationBar: BottomNavBar(
               items: items,
               selectedItem: state.selectedItem,
-              onTap: (int index) {
-                final BottomNavItem selectedItem = BottomNavItem.values[index];
-
-                _selectBottomNaviItem(
+              onTap: (index) {
+                final selectedItem = BottomNavItem.values[index];
+                _selectBottomNavItem(
                   context,
                   selectedItem,
                   selectedItem == state.selectedItem,
@@ -80,31 +71,29 @@ class NavScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOffStageNavigator(
-    BottomNavItem currentItem,
-    bool isSelected,
-  ) {
-    return Offstage(
-      offstage: !isSelected,
-      child: TavNavigator(
-        navigatorKey: navigatorKeys[currentItem]!,
-        item: currentItem,
-      ),
-    );
-  }
-
-  void _selectBottomNaviItem(
+  void _selectBottomNavItem(
     BuildContext context,
     BottomNavItem selectedItem,
     bool isSameItem,
   ) {
     if (isSameItem) {
-      // feed screen --> post screen --> post comment -->
-
-      navigatorKeys[selectedItem]
-          ?.currentState
-          ?.popUntil((Route<dynamic> route) => route.isFirst);
+      navigatorKeys[selectedItem]!
+          .currentState!
+          .popUntil((route) => route.isFirst);
     }
-    context.read<BottomNavCubit>().updateSelectedItem(selectedItem);
+    context.read<BottomNavBarCubit>().updateSelectedItem(selectedItem);
+  }
+
+  Widget _buildOffstageNavigator(
+    BottomNavItem currentItem,
+    bool isSelected,
+  ) {
+    return Offstage(
+      offstage: !isSelected,
+      child: TabNavigator(
+        navigatorKey: navigatorKeys[currentItem]!,
+        item: currentItem,
+      ),
+    );
   }
 }

@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:image_cropper/image_cropper.dart';
-import 'package:instagram/helpers/image_helper.dart';
-import 'package:instagram/models/app_user.dart';
-import 'package:instagram/repositories/storage/storage_repository.dart';
-import 'package:instagram/repositories/user/user_repository.dart';
+import 'package:instagram/helpers/helpers.dart';
+import 'package:instagram/models/models.dart';
+import 'package:instagram/repositories/repositories.dart';
 import 'package:instagram/screens/edit_profile/cubit/edit_profile_cubit.dart';
 import 'package:instagram/screens/profile/bloc/profile_bloc.dart';
-import 'package:instagram/widgets/error_dialog.dart';
-import 'package:instagram/widgets/user_profile_image.dart';
+import 'package:instagram/widgets/widgets.dart';
 
 class EditProfileScreenArgs {
-  final BuildContext? context;
+  final BuildContext context;
 
   const EditProfileScreenArgs({required this.context});
 }
@@ -27,21 +25,21 @@ class EditProfileScreen extends StatelessWidget {
         create: (_) => EditProfileCubit(
           userRepository: context.read<UserRepository>(),
           storageRepository: context.read<StorageRepository>(),
-          profileBloc: args!.context!.read<ProfileBloc>(),
+          profileBloc: args?.context.read<ProfileBloc>(),
         ),
         child: EditProfileScreen(
-            user: args!.context!.read<ProfileBloc>().state.user),
+            user: args!.context.read<ProfileBloc>().state.user!),
       ),
     );
   }
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final AppUser? user;
+  final User user;
 
   EditProfileScreen({
     Key? key,
-    @required this.user,
+    required this.user,
   }) : super(key: key);
 
   @override
@@ -60,7 +58,7 @@ class EditProfileScreen extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (context) =>
-                    ErrorDialog(content: state.failure?.message),
+                    ErrorDialog(content: state.failure.message),
               );
             }
           },
@@ -75,7 +73,7 @@ class EditProfileScreen extends StatelessWidget {
                     onTap: () => _selectProfileImage(context),
                     child: UserProfileImage(
                       radius: 80.0,
-                      profileImageUrl: user?.profileImageUrl,
+                      profileImageUrl: user.profileImageUrl,
                       profileImage: state.profileImage,
                     ),
                   ),
@@ -87,7 +85,7 @@ class EditProfileScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           TextFormField(
-                            initialValue: user?.username,
+                            initialValue: user.username,
                             decoration: InputDecoration(hintText: 'Username'),
                             onChanged: (value) => context
                                 .read<EditProfileCubit>()
@@ -98,7 +96,7 @@ class EditProfileScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 16.0),
                           TextFormField(
-                            initialValue: user?.bio,
+                            initialValue: user.bio,
                             decoration: InputDecoration(hintText: 'Bio'),
                             onChanged: (value) => context
                                 .read<EditProfileCubit>()
@@ -110,11 +108,12 @@ class EditProfileScreen extends StatelessWidget {
                           const SizedBox(height: 28.0),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                                elevation: 1.0,
-                                primary: Theme.of(context).primaryColor,
-                                textStyle: TextStyle(
-                                  color: Colors.white,
-                                )),
+                              elevation: 1.0,
+                              primary: Theme.of(context).primaryColor,
+                              textStyle: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
                             onPressed: () => _submitForm(
                               context,
                               state.status == EditProfileStatus.submitting,

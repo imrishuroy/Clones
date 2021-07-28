@@ -6,8 +6,8 @@ class EditProfileState extends Equatable {
   final File? profileImage;
   final String? username;
   final String? bio;
-  final EditProfileStatus? status;
-  final Failure? failure;
+  final EditProfileStatus status;
+  final Failure failure;
 
   const EditProfileState({
     required this.profileImage,

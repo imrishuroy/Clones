@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:instagram/repositories/storage/base_storage_repository.dart';
-
-import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 class StorageRepository extends BaseStorageRepository {
@@ -14,7 +12,7 @@ class StorageRepository extends BaseStorageRepository {
 
   Future<String> _uploadImage({
     required File image,
-    @required String? ref,
+    required String ref,
   }) async {
     final downloadUrl = await _firebaseStorage
         .ref(ref)
@@ -24,7 +22,7 @@ class StorageRepository extends BaseStorageRepository {
   }
 
   @override
-  Future<String?> uploadProfileImage({
+  Future<String> uploadProfileImage({
     required String url,
     required File image,
   }) async {
@@ -33,7 +31,7 @@ class StorageRepository extends BaseStorageRepository {
     // Update user profile image.
     if (url.isNotEmpty) {
       final exp = RegExp(r'userProfile_(.*).jpg');
-      imageId = exp.firstMatch(url)?[1] ?? '';
+      imageId = exp.firstMatch(url)![1]!;
     }
 
     final downloadUrl = await _uploadImage(
@@ -44,7 +42,7 @@ class StorageRepository extends BaseStorageRepository {
   }
 
   @override
-  Future<String?> uploadPostImage({required File image}) async {
+  Future<String> uploadPostImage({required File image}) async {
     final imageId = Uuid().v4();
     final downloadUrl = await _uploadImage(
       image: image,

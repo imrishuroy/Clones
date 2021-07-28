@@ -4,41 +4,44 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ErrorDialog extends StatelessWidget {
-  const ErrorDialog({Key? key, this.title = 'Error', required this.content})
-      : super(key: key);
-
   final String? title;
   final String? content;
 
+  const ErrorDialog({
+    Key? key,
+    this.title = 'Error',
+    required this.content,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Platform.isAndroid
-        ? _androidAlertDialog(context)
-        : _cupertinoAlertDialog(context);
+    return Platform.isIOS
+        ? _showIOSDialog(context)
+        : _showAndroidDialog(context);
   }
 
-  AlertDialog _androidAlertDialog(BuildContext context) {
-    return AlertDialog(
-      title: Text(title!),
-      content: Text(content!),
-      actions: <Widget>[
-        TextButton(
+  CupertinoAlertDialog _showIOSDialog(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: Text(title ?? ''),
+      content: Text(content ?? ''),
+      actions: [
+        CupertinoDialogAction(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('OK'),
-        )
+          child: const Text('Ok'),
+        ),
       ],
     );
   }
 
-  CupertinoAlertDialog _cupertinoAlertDialog(BuildContext context) {
-    return CupertinoAlertDialog(
-      title: Text(title!),
-      content: Text(content!),
-      actions: <Widget>[
-        CupertinoDialogAction(
+  AlertDialog _showAndroidDialog(BuildContext context) {
+    return AlertDialog(
+      title: Text(title ?? ''),
+      content: Text(content ?? ''),
+      actions: [
+        TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('OK'),
-        )
+          child: const Text('Ok'),
+        ),
       ],
     );
   }

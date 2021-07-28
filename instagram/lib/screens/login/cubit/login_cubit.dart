@@ -1,17 +1,17 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import 'package:instagram/models/failure.dart';
-import 'package:instagram/repositories/auth/auth_repository.dart';
+import 'package:instagram/models/models.dart';
+import 'package:instagram/repositories/repositories.dart';
 
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
+  final AuthRepository _authRepository;
+
   LoginCubit({required AuthRepository authRepository})
       : _authRepository = authRepository,
         super(LoginState.initial());
-
-  final AuthRepository _authRepository;
 
   void emailChanged(String value) {
     emit(state.copyWith(email: value, status: LoginStatus.initial));
@@ -21,16 +21,17 @@ class LoginCubit extends Cubit<LoginState> {
     emit(state.copyWith(password: value, status: LoginStatus.initial));
   }
 
-  Future<void> loginWithEmail() async {
+  void logInWithCredentials() async {
     if (!state.isFormValid || state.status == LoginStatus.submitting) return;
     emit(state.copyWith(status: LoginStatus.submitting));
     try {
-      await _authRepository.logInWithEmail(
-          email: state.email!, password: state.password!);
-      emit(state.copyWith(status: LoginStatus.succuss));
-    } on Failure catch (error) {
-      print(error.toString());
-      emit(state.copyWith(status: LoginStatus.error, failure: error));
+      await _authRepository.logInWithEmailAndPassword(
+        email: state.email,
+        password: state.password,
+      );
+      emit(state.copyWith(status: LoginStatus.success));
+    } on Failure catch (err) {
+      emit(state.copyWith(failure: err, status: LoginStatus.error));
     }
   }
 }

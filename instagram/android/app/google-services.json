@@ -14,14 +14,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "528702617658-fved51dou6nbbdgdn1mupvt8odf05qcv.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.sixteenbrains.instagram",
-            "certificate_hash": "9ac673650464c61f17db53bb7b606a673b061337"
-          }
-        },
-        {
           "client_id": "528702617658-jc8r99s5n3i5a9bekue6lch6idc28c11.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -37,6 +29,13 @@
             {
               "client_id": "528702617658-jc8r99s5n3i5a9bekue6lch6idc28c11.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "528702617658-a1sr16uha0qq57vp9ekhdcu0uigqogc8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sixteenbrains.instagram"
+              }
             }
           ]
         }

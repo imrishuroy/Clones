@@ -1,9 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import 'package:instagram/models/app_user.dart';
 import 'package:instagram/models/models.dart';
-import 'package:instagram/repositories/user/user_repository.dart';
+import 'package:instagram/repositories/repositories.dart';
 
 part 'search_state.dart';
 

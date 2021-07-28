@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:instagram/screens/profile/profile_screen.dart';
+import 'package:instagram/screens/screens.dart';
 import 'package:instagram/screens/search/cubit/search_cubit.dart';
-import 'package:instagram/widgets/centered_text.dart';
-import 'package:instagram/widgets/user_profile_image.dart';
+import 'package:instagram/widgets/widgets.dart';
 
 class SearchScreen extends StatefulWidget {
   static const String routeName = '/search';
@@ -59,23 +58,23 @@ class _SearchScreenState extends State<SearchScreen> {
               case SearchStatus.loading:
                 return const Center(child: CircularProgressIndicator());
               case SearchStatus.loaded:
-                return state.users.isNotEmpty
+                return state.users!.isNotEmpty
                     ? ListView.builder(
-                        itemCount: state.users.length,
+                        itemCount: state.users?.length,
                         itemBuilder: (BuildContext context, int index) {
-                          final user = state.users[index];
+                          final user = state.users?[index];
                           return ListTile(
                             leading: UserProfileImage(
                               radius: 22.0,
-                              profileImageUrl: user?.profileImageUrl,
+                              profileImageUrl: user!.profileImageUrl,
                             ),
                             title: Text(
-                              user?.username ?? '',
+                              user.username!,
                               style: const TextStyle(fontSize: 16.0),
                             ),
                             onTap: () => Navigator.of(context).pushNamed(
                               ProfileScreen.routeName,
-                              arguments: ProfileScreenArgs(userId: user?.id),
+                              arguments: ProfileScreenArgs(userId: user.id!),
                             ),
                           );
                         },

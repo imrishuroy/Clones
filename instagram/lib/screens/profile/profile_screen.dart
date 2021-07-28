@@ -1,34 +1,34 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:instagram/blocs/auth/auth_bloc.dart';
-import 'package:instagram/repositories/post/post_repository.dart';
-import 'package:instagram/repositories/user/user_repository.dart';
+
+import 'package:instagram/blocs/blocs.dart';
+import 'package:instagram/cubits/cubits.dart';
+import 'package:instagram/repositories/repositories.dart';
 import 'package:instagram/screens/profile/bloc/profile_bloc.dart';
-import 'package:instagram/screens/profile/widget/profile_info.dart';
-import 'package:instagram/screens/profile/widget/profile_stats.dart';
-import 'package:instagram/widgets/error_dialog.dart';
-import 'package:instagram/widgets/post_view.dart';
-import 'package:instagram/widgets/user_profile_image.dart';
+import 'package:instagram/screens/profile/widgets/widgets.dart';
+import 'package:instagram/screens/screens.dart';
+import 'package:instagram/widgets/widgets.dart';
 
 class ProfileScreenArgs {
-  final String? userId;
+  final String userId;
 
-  ProfileScreenArgs({required this.userId});
+  const ProfileScreenArgs({required this.userId});
 }
 
 class ProfileScreen extends StatefulWidget {
-  static const String routeName = 'profile';
+  static const String routeName = '/profile';
 
-  static Route route({required ProfileScreenArgs args}) {
+  static Route route({required ProfileScreenArgs? args}) {
     return MaterialPageRoute(
-      settings: RouteSettings(arguments: args, name: routeName),
+      settings: const RouteSettings(name: routeName),
       builder: (context) => BlocProvider<ProfileBloc>(
-        create: (context) => ProfileBloc(
+        create: (_) => ProfileBloc(
           userRepository: context.read<UserRepository>(),
           postRepository: context.read<PostRepository>(),
           authBloc: context.read<AuthBloc>(),
-        )..add(ProfileLoadUser(userId: args.userId)),
+          likedPostsCubit: context.read<LikedPostsCubit>(),
+        )..add(ProfileLoadUser(userId: args!.userId)),
         child: ProfileScreen(),
       ),
     );
@@ -40,7 +40,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -67,14 +68,14 @@ class _ProfileScreenState extends State<ProfileScreen>
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(state.user?.username ?? ''),
+            title: Text(state.user!.username!),
             actions: [
-              if (state.isCurrentUser!)
+              if (state.isCurrentUser)
                 IconButton(
                   icon: const Icon(Icons.exit_to_app),
                   onPressed: () {
                     context.read<AuthBloc>().add(AuthLogoutRequested());
-                    // context.read<LikedPostsCubit>().clearAllLikedPosts();
+                    context.read<LikedPostsCubit>().clearAllLikedPosts();
                   },
                 ),
             ],
@@ -94,8 +95,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           onRefresh: () async {
             context
                 .read<ProfileBloc>()
-                .add(ProfileLoadUser(userId: state.user?.id));
-            //return true;
+                .add(ProfileLoadUser(userId: state.user!.id!));
+            // return true;
           },
           child: CustomScrollView(
             slivers: [
@@ -108,13 +109,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                         children: [
                           UserProfileImage(
                             radius: 40.0,
-                            profileImageUrl: state.user?.profileImageUrl,
+                            profileImageUrl: state.user!.profileImageUrl,
                           ),
                           ProfileStats(
-                            isCurrentUser: state.isCurrentUser ?? false,
-                            isFollowing: state.isFollowing ?? false,
-                            posts: state.posts?.length,
-                            followers: state.user?.followers,
+                            isCurrentUser: state.isCurrentUser,
+                            isFollowing: state.isFollowing,
+                            posts: state.posts.length,
+                            followers: state.user?.followers ?? 0,
                             following: state.user?.following ?? 0,
                           ),
                         ],
@@ -148,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       .add(ProfileToggleGridView(isGridView: i == 0)),
                 ),
               ),
-              state.isGridView!
+              state.isGridView
                   ? SliverGrid(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
@@ -157,46 +158,47 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final post = state.posts?[index];
+                          final post = state.posts[index];
                           return GestureDetector(
-                            //onTap: () => Navigator.of(context).pushNamed(
-                            // CommentsScreen.routeName,
-                            // arguments: CommentsScreenArgs(post: post),
-                            // ),
+                            onTap: () => Navigator.of(context).pushNamed(
+                              CommentsScreen.routeName,
+                              arguments: CommentsScreenArgs(post: post!),
+                            ),
                             child: CachedNetworkImage(
-                              imageUrl: post!.imageUrl!,
+                              imageUrl: post?.imageUrl ??
+                                  'https://developers.google.com/maps/documentation/maps-static/images/error-image-generic.png',
                               fit: BoxFit.cover,
                             ),
                           );
                         },
-                        childCount: state.posts?.length,
+                        childCount: state.posts.length,
                       ),
                     )
                   : SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final post = state.posts?[index];
-                          // final likedPostsState =
-                          //     context.watch<LikedPostsCubit>().state;
-                          // final isLiked =
-                          //     likedPostsState.likedPostIds.contains(post.id);
+                          final post = state.posts[index];
+                          final likedPostsState =
+                              context.watch<LikedPostsCubit>().state;
+                          final isLiked =
+                              likedPostsState.likedPostIds.contains(post!.id);
                           return PostView(
                             post: post,
-                            isLiked: false,
+                            isLiked: isLiked,
                             onLike: () {
-                              // if (isLiked) {
-                              //   context
-                              //       .read<LikedPostsCubit>()
-                              //       .unlikePost(post: post);
-                              // } else {
-                              //   context
-                              //       .read<LikedPostsCubit>()
-                              //       .likePost(post: post);
-                              // }
+                              if (isLiked) {
+                                context
+                                    .read<LikedPostsCubit>()
+                                    .unlikePost(post: post);
+                              } else {
+                                context
+                                    .read<LikedPostsCubit>()
+                                    .likePost(post: post);
+                              }
                             },
                           );
                         },
-                        childCount: state.posts?.length,
+                        childCount: state.posts.length,
                       ),
                     ),
             ],

@@ -1,92 +1,69 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/services.dart';
 import 'package:instagram/config/paths.dart';
-import 'package:instagram/models/failure.dart';
+import 'package:instagram/models/models.dart';
 import 'package:instagram/repositories/auth/base_auth_repository.dart';
 
 class AuthRepository extends BaseAuthRepository {
+  final FirebaseFirestore _firebaseFirestore;
+  final auth.FirebaseAuth _firebaseAuth;
+
   AuthRepository({
     FirebaseFirestore? firebaseFirestore,
-    FirebaseAuth? firebaseAuth,
-  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _firestore = firebaseFirestore ?? FirebaseFirestore.instance;
-
-  final FirebaseAuth _firebaseAuth;
-  final FirebaseFirestore _firestore;
+    auth.FirebaseAuth? firebaseAuth,
+  })  : _firebaseFirestore = firebaseFirestore ?? FirebaseFirestore.instance,
+        _firebaseAuth = firebaseAuth ?? auth.FirebaseAuth.instance;
 
   @override
-  Stream<User?> get user => _firebaseAuth.userChanges();
+  Stream<auth.User?> get user => _firebaseAuth.userChanges();
 
   @override
-  Future<User?> signUpWithEmail({
+  Future<auth.User?> signUpWithEmailAndPassword({
     required String username,
     required String email,
     required String password,
   }) async {
     try {
-      final UserCredential userCredential =
-          await _firebaseAuth.createUserWithEmailAndPassword(
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      final User? user = userCredential.user;
-      if (user != null) {
-        _firestore.collection(Paths.users).doc(user.uid).set(
-          <String, dynamic>{
-            'username': username,
-            'email': email,
-            'following': 0,
-            'followers': 0,
-          },
-        );
-      }
-
+      final user = credential.user;
+      _firebaseFirestore.collection(Paths.users).doc(user?.uid).set({
+        'username': username,
+        'email': email,
+        'followers': 0,
+        'following': 0,
+      });
       return user;
-    } on FirebaseAuthException catch (error) {
-      print('Sign Up FirebaseAuth Exception - ${error.message}');
-      throw Failure(
-          message: error.message ?? 'Something went wrong', code: error.code);
-    } on PlatformException catch (error) {
-      print('Sign Up Platform Exception - ${error.message}');
-      throw Failure(
-          message: error.message ?? 'Something went wrong', code: error.code);
-    } catch (error) {
-      print('Sign Up Error - ${error.toString}');
-      throw const Failure(
-        message: 'Something went wrong',
-      );
+    } on auth.FirebaseAuthException catch (err) {
+      throw Failure(code: err.code, message: err.message ?? '');
+    } on PlatformException catch (err) {
+      throw Failure(code: err.code, message: err.message ?? '');
     }
   }
 
   @override
-  Future<User?> logInWithEmail(
-      {required String email, required String password}) async {
+  Future<auth.User?> logInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final UserCredential userCredential =
-          await _firebaseAuth.signInWithEmailAndPassword(
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return userCredential.user;
-    } on FirebaseAuthException catch (error) {
-      print('Sign In FirebaseAuth Exception - ${error.message}');
-      throw Failure(
-          message: error.message ?? 'Something went wrong', code: error.code);
-    } on PlatformException catch (error) {
-      print('Sign IN Platform Exception - ${error.message}');
-      throw Failure(
-          message: error.message ?? 'Something went wrong', code: error.code);
-    } catch (error) {
-      print('SignIn Error - ${error.toString}');
-      throw const Failure(
-        message: 'Something went wrong',
-      );
+      return credential.user;
+    } on auth.FirebaseAuthException catch (err) {
+      throw Failure(code: err.code, message: err.message ?? '');
+    } on PlatformException catch (err) {
+      throw Failure(code: err.code, message: err.message ?? '');
     }
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logOut() async {
     await _firebaseAuth.signOut();
   }
 }

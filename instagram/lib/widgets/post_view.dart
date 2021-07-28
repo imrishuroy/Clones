@@ -1,9 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram/models/models.dart';
-import 'package:instagram/screens/profile/profile_screen.dart';
-
-import 'package:instagram/widgets/user_profile_image.dart';
+import 'package:instagram/screens/screens.dart';
+import 'package:instagram/widgets/widgets.dart';
 import 'package:instagram/extensions/extensions.dart';
 
 class PostView extends StatelessWidget {
@@ -29,25 +28,18 @@ class PostView extends StatelessWidget {
           child: GestureDetector(
             onTap: () => Navigator.of(context).pushNamed(
               ProfileScreen.routeName,
-              arguments: ProfileScreenArgs(
-                userId: post?.author?.id,
-              ),
+              arguments: ProfileScreenArgs(userId: post?.author?.id ?? ''),
             ),
-
-            // onTap: () => Navigator.of(context).pushNamed(
-            //   ProfileScreen.routeName,
-            //   arguments: ProfileScreenArgs(userId: post.author.id),
-            // ),
             child: Row(
               children: [
                 UserProfileImage(
                   radius: 18.0,
-                  profileImageUrl: post?.author?.profileImageUrl,
+                  profileImageUrl: post?.author!.profileImageUrl,
                 ),
                 const SizedBox(width: 8.0),
                 Expanded(
                   child: Text(
-                    '${post?.author?.username ?? ''}',
+                    post?.author?.username ?? '',
                     style: const TextStyle(
                       fontSize: 16.0,
                       fontWeight: FontWeight.w600,
@@ -63,7 +55,8 @@ class PostView extends StatelessWidget {
           child: CachedNetworkImage(
             height: MediaQuery.of(context).size.height / 2.25,
             width: double.infinity,
-            imageUrl: post!.imageUrl!,
+            imageUrl: post?.imageUrl ??
+                'https://developers.google.com/maps/documentation/maps-static/images/error-image-generic.png',
             fit: BoxFit.cover,
           ),
         ),
@@ -77,11 +70,10 @@ class PostView extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.comment_outlined),
-              onPressed: () {},
-              // onPressed: () => Navigator.of(context).pushNamed(
-              //   CommentsScreen.routeName,
-              //   arguments: CommentsScreenArgs(post: post),
-              // ),
+              onPressed: () => Navigator.of(context).pushNamed(
+                CommentsScreen.routeName,
+                arguments: CommentsScreenArgs(post: post!),
+              ),
             ),
           ],
         ),
@@ -91,8 +83,7 @@ class PostView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '',
-                //'${recentlyLiked ? post.likes + 1 : post.likes} likes',
+                '${recentlyLiked ? post!.likes! + 1 : post!.likes} likes',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4.0),
@@ -110,9 +101,7 @@ class PostView extends StatelessWidget {
               ),
               const SizedBox(height: 4.0),
               Text(
-                '${post?.date!.timeAgo()}',
-
-                //'', //post!.date!.timeAgo(),
+                post!.date.timeAgo(),
                 style: TextStyle(
                   color: Colors.grey[600],
                   fontWeight: FontWeight.w500,
